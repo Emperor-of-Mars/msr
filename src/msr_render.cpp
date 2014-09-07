@@ -13,7 +13,7 @@ glm::vec3 transform_point(glm::vec3 &p, glm::mat4 &trans){
 	glm::vec4 res(p, 1);
 	res = trans * res;
 	//std::cerr << res[0] << " " << res[1] << " " << res[2] << " " << res[3] << std::endl;
-	return glm::vec3(res[0], res[1], res[2]);
+	return glm::vec3(res[0], res[1], res[3]);
 }
 
 void render_points(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, unsigned int size){
@@ -34,6 +34,13 @@ void render_points(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, 
 }
 
 void draw_line(glm::vec3 point1, glm::vec3 point2, image &img, unsigned int size){
+	if(point1[2] < 0 || point2[2] < 0) return;
+	/*if(point1[2] < 0){
+		point1 += (point1 + point2) * (point1[0] / point2[0]);
+	}
+	if(point2[2] < 0){
+		point2 += (point2 + point1) * (point2[0] / point1[0]);
+	}*/
 	glm::vec2 p1(point1[0] / point1[2] * img.get_width() / 2 + img.get_width() / 2,
 				point1[1] / point1[2] * img.get_height() / 2 + img.get_height() / 2);
 	glm::vec2 p2(point2[0] / point2[2] * img.get_width() / 2 + img.get_width() / 2,
@@ -43,25 +50,14 @@ void draw_line(glm::vec3 point1, glm::vec3 point2, image &img, unsigned int size
 	float length = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
 	glm::vec2 step(dir[0] / length, dir[1] / length);
 
-	/*std::cerr << length << std::endl;
-	std::cerr << p1[0] << " " << p1[1] << std::endl;
-	std::cerr << p2[0] << " " << p2[1] << std::endl;
-	std::cerr << step[0] << " " << step[1] << std::endl;
-	std::cerr << dir[0] << " " << dir[1] << std::endl << std::endl;*/
-
-	if(length > img.get_height() + img.get_width()) return;
-
 	for(unsigned int i = 0; i < (unsigned int)length; i++){
-		img.draw_point((int)p2[0] - (int)(step[0] * i), (int)p2[1] - (int)(step[1] * i), 255, 255, 255);
-	}
-
-	/*for(unsigned int i = 0; i < (unsigned int)length; i++){
-		for(unsigned int y = size; y < -size; y--){
-			for(unsigned int x = size; x < -size; x--){
-				img.draw_point((int)p2[0] + y - (int)(step[0] * i), (int)p2[1] + x - (int)(step[1] * i), 255, 255, 255);
+		if(!img.draw_point((int)p2[0] - (int)(step[0] * i), (int)p2[1] - (int)(step[1] * i), 255, 255, 255)){
+			for(unsigned int i = (unsigned int)length; i > 0; i--){
+				if(!img.draw_point((int)p2[0] - (int)(step[0] * i), (int)p2[1] - (int)(step[1] * i), 255, 255, 255)) break;
 			}
+			break;
 		}
-	}*/
+	}
 	return;
 }
 

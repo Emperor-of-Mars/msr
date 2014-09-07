@@ -16,7 +16,7 @@ camera::camera(float fov, float screenratio, float near, float far, int mode, fl
 	projection = glm::perspective(fov, screenratio, near, far);
 	pos = glm::vec3(0, 0, 0);
 	rot = glm::vec3(0, 0, 0);
-	dir = glm::vec3(0, 0, 1);
+	dir = glm::vec3(0, 0, -1);
 	up = glm::vec3(0, 1, 0);
 	right = glm::vec3(1, 0, 0);
 	view = glm::lookAt(pos, pos + dir, up);
