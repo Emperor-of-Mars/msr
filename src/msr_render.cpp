@@ -9,17 +9,30 @@
 
 namespace msr{
 
-glm::vec3 transform_point(glm::vec3 &p, glm::mat4 &trans){
+inline glm::vec3 transform_point(glm::vec3 &p, glm::mat4 &trans){
 	glm::vec4 res(p, 1);
 	res = trans * res;
 	//std::cerr << res[0] << " " << res[1] << " " << res[2] << " " << res[3] << std::endl;
 	return glm::vec3(res[0], res[1], res[3]);
 }
 
-void render_points(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, unsigned int size){
+inline void render_points(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, unsigned int size){
+	float near = 0.1;
 	for(unsigned int i = 0; i < points.size(); i++){
 		glm::vec3 transformed = transform_point(points[i], trans);
-		if(transformed[2] < 0.f){
+		if(transformed[2] < near){
+			continue;
+		}
+		if(transformed[0] < -transformed[2]){
+			continue;
+		}
+		if(transformed[0] > transformed[2]){
+			continue;
+		}
+		if(transformed[1] < -transformed[2]){
+			continue;
+		}
+		if(transformed[1] > transformed[2]){
 			continue;
 		}
 		glm::vec2 p(transformed[0] / transformed[2] * img.get_width() / 2 + img.get_width() / 2,
@@ -33,14 +46,48 @@ void render_points(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, 
 	return;
 }
 
-void draw_line(glm::vec3 point1, glm::vec3 point2, image &img, unsigned int size){
-	if(point1[2] < 0 || point2[2] < 0) return;
-	/*if(point1[2] < 0){
-		point1 += (point1 + point2) * (point1[0] / point2[0]);
+inline void draw_line(glm::vec3 point1, glm::vec3 point2, image &img, unsigned int size){
+	float near = 0.1;
+	if(point1[2] < near && point2[2] < near){
+		return;
 	}
-	if(point2[2] < 0){
-		point2 += (point2 + point1) * (point2[0] / point1[0]);
-	}*/
+	if(point1[2] < near){
+        float n = (near - point1[2]) / (point2[2] - point1[2]);
+        point1[0] = point1[0] + n * (point2[0] - point1[0]);
+        point1[1] = point1[1] + n * (point2[1] - point1[1]);
+        point1[2] = near;
+	}
+	else if(point2[2] < near){
+		glm::vec3 tmp = point1;
+		point1 = point2;
+		point2 = tmp;
+        float n = (near - point1[2]) / (point2[2] - point1[2]);
+        point1[0] = point1[0] + n * (point2[0] - point1[0]);
+        point1[1] = point1[1] + n * (point2[1] - point1[1]);
+        point1[2] = near;
+	}
+//#################################### this doesnt work properly
+    float mul = 0.8;
+	if(point1[0] < -point1[2] * mul && point2[0] < -point2[2] * mul){
+		return;
+	}
+	if(point1[0] < -point1[2] * mul){
+        float n = (-point1[2] * mul - point1[0]) / ((point2[0] - point1[0]) - (point2[2] - point1[2]));
+        point1[0] = point1[0] + n * (point2[0] - point1[0]);
+        point1[1] = point1[1] + n * (point2[1] - point1[1]);
+        point1[2] = point1[0];
+	}
+	else if(point2[0] < -point2[2] * mul){
+		glm::vec3 tmp = point1;
+		point1 = point2;
+		point2 = tmp;
+        float n = (-point1[2] * mul - point1[0]) / ((point2[0] - point1[0]) - (point2[2] - point1[2]));
+        point1[0] = point1[0] + n * (point2[0] - point1[0]);
+        point1[1] = point1[1] + n * (point2[1] - point1[1]);
+        point1[2] = point1[0];
+	}
+//####################################
+
 	glm::vec2 p1(point1[0] / point1[2] * img.get_width() / 2 + img.get_width() / 2,
 				point1[1] / point1[2] * img.get_height() / 2 + img.get_height() / 2);
 	glm::vec2 p2(point2[0] / point2[2] * img.get_width() / 2 + img.get_width() / 2,
@@ -57,11 +104,12 @@ void draw_line(glm::vec3 point1, glm::vec3 point2, image &img, unsigned int size
 			}
 			break;
 		}
+		//img.draw_point((int)p2[0] - (int)(step[0] * i), (int)p2[1] - (int)(step[1] * i), 255, 255, 255);
 	}
 	return;
 }
 
-void render_lines(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, unsigned int size){
+inline void render_lines(std::vector<glm::vec3> &points, glm::mat4 trans, image &img, unsigned int size){
 	for(unsigned int i = 0; i < points.size(); i += 3){
 		glm::vec3 transformed1 = transform_point(points[i], trans);
 		glm::vec3 transformed2 = transform_point(points[i + 1], trans);

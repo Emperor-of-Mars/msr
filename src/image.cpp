@@ -40,7 +40,7 @@ void image::clear(unsigned char r, unsigned char g, unsigned char b){
 
 bool image::draw_point(unsigned int pos_w, unsigned int pos_h, unsigned char r, unsigned char g, unsigned char b){
 	if(pos_w >= width || pos_h >= height){
-		//std::cerr << "wrong image position!" << std::endl;
+		std::cerr << "wrong image position!" << std::endl;
 		return false;
 	}
 	//std::cerr << "render at: " << pos_w << " " << pos_h << std::endl;

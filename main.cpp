@@ -39,6 +39,8 @@ int main(int argc, char *argv[]){
 		frametime = current - last;
 		last = current;
 		std::cerr << "FPS: " << 1000.f / frametime << std::endl;
+		float delay = 16.7 - frametime;
+		//if(delay > 0) SDL_Delay(delay);
 	}
 
 	return 0;
